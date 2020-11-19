@@ -1,4 +1,3 @@
-import _sqlite3
 from flask_restful import Resource, reqparse
 from models.user import UserModel
 
@@ -9,7 +8,7 @@ class UserRegister(Resource):
                         type=str,
                         required=True,
                         help="This field cannot be blank."
-    )
+                        )
     parser.add_argument('password',
                         type=str,
                         required=True,
@@ -20,15 +19,9 @@ class UserRegister(Resource):
         data = UserRegister.parser.parse_args()
 
         if UserModel.find_by_username(data['username']):
-            return {"message": "A user with that username is already exists"}, 400
+            return {"message": "A user with that username already exists"}, 400
 
-        connection = _sqlite3.connect('data.db')
-        cursor = connection.cursor()
+        user = UserModel(data['username'], data['password'])
+        user.save_to_db()
 
-        query = "INSERT INTO users VALUES(NULL, ?, ?)"
-        cursor.execute(query, (data['username'], data['password']))
-
-        connection.commit()
-        connection.close()
-
-        return {"message": "user created successfully."}, 201
+        return {"message": "User created successfully."}, 201
